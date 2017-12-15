@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Yaml\Yaml;
+
+$configuration = Yaml::parse(
+    file_get_contents(__DIR__.'/../config/scrappy.yaml')
+);
+
+$application = new Application();
+
+$application->add(new Scrappy\Command\ListPosts($configuration['vdm.url']));
+
+$application->run();
