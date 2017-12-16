@@ -8,4 +8,8 @@ Command line tool for Scrappy Life.
 
 # Run
 
-      bin/scrappy posts
+      bin/scrappy posts | jq
+
+# Test
+
+      vendor/bin/phpunit --coverage-html cover test
