@@ -14,6 +14,16 @@ services:
     depends_on:
       - db
 
+  api:
+    build: ./api
+    environment:
+      - 'MONGO_URI=mongodb://db:27017/test'
+      - 'APPLICATION_SECRET=ecabbd83-beaa-4a30-9c36-a7a79bdf0afd'
+    depends_on:
+      - db
+    ports:
+      - 9000:9000
+
   mongo_express:
     image: mongo-express
     links:
