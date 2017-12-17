@@ -8,9 +8,17 @@ Command line tool for Scrappy Life.
 
 # Run
 
+## Voir les posts
+
       bin/scrappy posts | jq
 
+## Charger les posts dans MongoDB
+
+      bin/scrappy load
+
 # On Docker
+
+Attention: Cette étape peut etre longue a cause l'installation d'extensions PHP
 
       docker build -t scrappy .
 

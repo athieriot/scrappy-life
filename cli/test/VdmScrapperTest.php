@@ -1,25 +1,27 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Scrappy\Command\ListPosts;
+use Scrappy\VdmScrapper;
 
-class ListPostsTest extends TestCase
+class VdmScrapperTest extends TestCase
 {
-    private $cmd;
+    private $scrapper;
 
     /**
      * @before
      */
     public function setup()
     {
-        $this->cmd = new ListPosts("vmd.fr");
+        $this->scrapper = new VdmScrapper("vmd.fr", new NullLogger());
     }
 
     public function testCanParseFrenchDates(): void
     {
         $this->assertEquals(
             "2017-12-15T11:30:00+0000",
-            $this->cmd->parseFrenchDate(ListPosts::VDM_DATE_FORMAT, "vendredi 15 décembre 2017 11:30")
+            $this->scrapper->parseFrenchDate("vendredi 15 décembre 2017 11:30")
         );
     }
 
@@ -27,7 +29,7 @@ class ListPostsTest extends TestCase
     {
         $this->assertEquals(
             false,
-            $this->cmd->parseFrenchDate(ListPosts::VDM_DATE_FORMAT, "Not the date you are looking for")
+            $this->scrapper->parseFrenchDate("Not the date you are looking for")
         );
     }
 
@@ -37,7 +39,7 @@ class ListPostsTest extends TestCase
 
         $this->assertEquals(
             array("Desespoir", "jeudi 14 décembre 2017 22:30"),
-            $this->cmd->extractAuthorAndDate("Par Desespoir -  / jeudi 14 décembre 2017 22:30 /")
+            $this->scrapper->extractAuthorAndDate("Par Desespoir -  / jeudi 14 décembre 2017 22:30 /")
         );
     }
 
@@ -45,7 +47,7 @@ class ListPostsTest extends TestCase
     {
         $this->assertEquals(
             array(null, null),
-            $this->cmd->extractAuthorAndDate("Not the footer you are looking for")
+            $this->scrapper->extractAuthorAndDate("Not the footer you are looking for")
         );
     }
 }

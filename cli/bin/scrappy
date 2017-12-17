@@ -13,5 +13,6 @@ $configuration = Yaml::parse(
 $application = new Application();
 
 $application->add(new Scrappy\Command\ListPosts($configuration['vdm.url']));
+$application->add(new Scrappy\Command\LoadPosts($configuration['vdm.url'], $configuration['mongo.uri']));
 
 $application->run();
