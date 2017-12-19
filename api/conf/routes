@@ -3,5 +3,12 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET     /posts                           controllers.PostController.posts
-GET     /posts/:id                       controllers.PostController.post(id: reactivemongo.bson.BSONObjectID)
+GET     /posts                        controllers.PostController.posts
+GET     /posts/:id                    controllers.PostController.post(id: reactivemongo.bson.BSONObjectID)
+
+# Swagger docs
+GET       /                           controllers.ApiDocsController.redirectToDocs
+GET       /swagger.json               controllers.ApiHelpController.getResources
+GET       /api-docs                   controllers.ApiDocsController.redirectToDocs
+
+GET       /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

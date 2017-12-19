@@ -9,6 +9,10 @@ API for Scrappy Life.
 # Run
 
     sbt run
+    
+## Afficher la spec Swagger
+
+  [http://localhost:9000](http://localhost:9000)
 
 ## Voir les posts
 
