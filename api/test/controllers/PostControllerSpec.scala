@@ -61,13 +61,6 @@ class PostControllerSpec extends PlaySpec
       status(posts) mustBe NOT_FOUND
     }
 
-    "return not found status for invalid id" in {
-      val request = FakeRequest(GET, "/posts/dff546846dfd")
-      val posts = route(app, request).get
-
-      status(posts) mustBe BAD_REQUEST
-    }
-
     "return a single post" in {
       mockRepository.getOne _ expects * returning Future(Some(Post(None, Some("Test"), None, None)))
 

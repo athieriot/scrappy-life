@@ -14,7 +14,7 @@ Command line tool for Scrappy Life.
 
 ## Charger les posts dans MongoDB
 
-      bin/scrappy load
+      bin/scrappy load -vv
 
 # On Docker
 

@@ -25,14 +25,4 @@ class LoadPostsTest extends TestCase
 
         $this->assertEquals("b124f706ac4c4b09e0a03a14c71492409df846be", $result["_id"]);
     }
-
-    public function testCannotAddIdForNullValues()
-    {
-        $result = $this->cmd->addId(array(
-            "author" => null,
-            "date" => null
-        ));
-
-        $this->assertFalse(array_key_exists("_id", $result));
-    }
 }

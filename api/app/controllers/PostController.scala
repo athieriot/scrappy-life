@@ -6,21 +6,20 @@ import io.swagger.annotations._
 import models.{Post, PostRepository, PostResponse, PostsResponse}
 import play.api.libs.json.Json
 import play.api.mvc._
-import reactivemongo.bson.BSONObjectID
 
 import scala.concurrent.ExecutionContext
 
 // Api
 //TODO: Search
-//TODO: Oid not visible on the outside
 
 // Cli
-//TODO: Better Scrapper (Page Number Woot !)
+//TODO: Test Crawlers functions
 //TODO: PHPDocs
 
 // UI
 //TODO: Frontend
 //TODO: Selenium Tests
+//TODO: Production ready DockerCompose file
 @Api(value = "/posts")
 class PostController @Inject()(cc: ControllerComponents, repository: PostRepository, implicit val ec: ExecutionContext)
   extends InjectedController {
@@ -36,7 +35,7 @@ class PostController @Inject()(cc: ControllerComponents, repository: PostReposit
   @ApiResponses(Array(
     new ApiResponse(code = 404, message = "Post not found")
   ))
-  def post(@ApiParam(value = "The id of the post to display") id: BSONObjectID) = Action.async { request =>
+  def post(@ApiParam(value = "The id of the post to display") id: String) = Action.async { request =>
     repository.getOne(id).map {
       case Some(p) => Ok(Json.toJson(PostResponse(p)))
       case None => NotFound

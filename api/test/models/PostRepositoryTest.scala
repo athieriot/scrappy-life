@@ -20,7 +20,7 @@ class PostRepositoryTest extends PlaySpec
     "be able to retrieve a list of posts" in {
       withEmbedMongoFixture() { _ =>
         val repository = fakeApplication().injector.instanceOf[PostRepository]
-        val expected = Post(Some(BSONObjectID.generate()), Some("Test"), Some("Me"), Some("2017"))
+        val expected = Post(None, Some("Test"), Some("Me"), Some("2017"))
 
         repository.add(expected)
         repository.getAll map { p =>
@@ -33,7 +33,7 @@ class PostRepositoryTest extends PlaySpec
     "be able to retrieve one post" in {
       withEmbedMongoFixture() { _ =>
         val repository = fakeApplication().injector.instanceOf[PostRepository]
-        val id = BSONObjectID.generate()
+        val id = "sjhdfsd54f5s4df"
         val expected = Post(Some(id), Some("Test"), Some("Me"), Some("2017"))
 
         repository.add(expected)

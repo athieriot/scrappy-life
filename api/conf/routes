@@ -4,7 +4,7 @@
 # ~~~~
 
 GET     /posts                        controllers.PostController.posts
-GET     /posts/:id                    controllers.PostController.post(id: reactivemongo.bson.BSONObjectID)
+GET     /posts/:id                    controllers.PostController.post(id: String)
 
 # Swagger docs
 GET       /                           controllers.ApiDocsController.redirectToDocs

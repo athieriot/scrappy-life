@@ -13,7 +13,7 @@ import reactivemongo.play.json.collection.JSONCollection
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class Post(_id: Option[BSONObjectID], content: Option[String], author: Option[String], date: Option[String])
+case class Post(_id: Option[String], content: Option[String], author: Option[String], date: Option[String])
 
 case class PostResponse(post: Post)
 case class PostsResponse(posts: Seq[Post], count: Int)
@@ -47,7 +47,7 @@ class PostRepository @Inject()(implicit ec: ExecutionContext, reactiveMongoApi: 
     )
   }
 
-  def getOne(id: BSONObjectID): Future[Option[Post]] = {
+  def getOne(id: String): Future[Option[Post]] = {
     val query = BSONDocument("_id" -> id)
     postsCollection.flatMap(_.find(query).one[Post])
   }

@@ -54,15 +54,16 @@ class LoadPosts extends Command
 
     /**
      * Produce an unique ID based on author and date
+     * This will protect existing IDs against reloading
+     *
+     * TODO: Should we include the content in it?
      *
      * @param $post
      * @return mixed
      */
     public function addId($post)
     {
-        if ($post["author"] != null && $post["date"] != null) {
-            $post["_id"] = sha1($post["author"].$post["date"]);
-        }
+        $post["_id"] = sha1($post["author"].$post["date"]);
 
         return $post;
     }

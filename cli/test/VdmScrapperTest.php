@@ -35,8 +35,6 @@ class VdmScrapperTest extends TestCase
 
     public function testCanExtractAuthorAndDate(): void
     {
-        $cmd = new ListPosts("vdm.fr");
-
         $this->assertEquals(
             array("Desespoir", "jeudi 14 décembre 2017 22:30"),
             $this->scrapper->extractAuthorAndDate("Par Desespoir -  / jeudi 14 décembre 2017 22:30 /")
@@ -46,8 +44,32 @@ class VdmScrapperTest extends TestCase
     public function testCanHandleInvalidFooter(): void
     {
         $this->assertEquals(
-            array(null, null),
+            null,
             $this->scrapper->extractAuthorAndDate("Not the footer you are looking for")
         );
     }
+
+    public function testCanExtractAuthorWithSpecialChars(): void
+    {
+        $this->assertEquals(
+            array("Etuncoupd'aspi", "lundi 18 décembre 2017 11:30"),
+            $this->scrapper->extractAuthorAndDate("Par Etuncoupd'aspi -  / lundi 18 décembre 2017 11:30 /")
+        );
+        $this->assertEquals(
+            array("Cat-pito", "dimanche 17 décembre 2017 08:00"),
+            $this->scrapper->extractAuthorAndDate("Par Cat-pito -  / dimanche 17 décembre 2017 08:00 / France - Compi?gne")
+        );
+        $this->assertEquals(
+            array("Cat pito", "dimanche 17 décembre 2017 08:00"),
+            $this->scrapper->extractAuthorAndDate("Par Cat pito -  / dimanche 17 décembre 2017 08:00 / France - Compi?gne")
+        );
+    }
+
+    public function testValidClassicPost(): void
+    {
+        $this->assertEquals(true, $this->scrapper->isClassic("Blabla VDM"));
+        $this->assertEquals(false, $this->scrapper->isClassic("Blabla"));
+    }
+
+
 }

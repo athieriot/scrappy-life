@@ -10,7 +10,7 @@ use Symfony\Component\DomCrawler\Crawler;
 class VdmScrapper
 {
     const CONTENT_SELECTOR = '.panel-content > p > a';
-    const FOOTER_REGEXP = "/Par ([\w \.]*)[ -\/]*([^\/]*)/u";
+    const FOOTER_REGEXP = "/Par (.*) -  \/ ?([^\/]*)/u";
     const VDM_DATE_FORMAT = 'EEEE dd MMMM y hh:mm';
 
     private $url;
@@ -24,26 +24,59 @@ class VdmScrapper
     }
 
     public function fetchPosts() {
+        $allPosts = array();
+        $page = 0;
+
+        while (count($allPosts) < 200 && $page < 20) {
+            $page++;
+            $posts = $this->fetchPostsOn($this->url."?page=".$page);
+            $allPosts = array_merge($allPosts, $posts);
+            $this->logger->info("Posts scrapped so far: ".count($allPosts));
+        }
+
+        return $allPosts;
+    }
+
+    private function fetchPostsOn($url) {
         $client = new Client();
 
-        $this->logger->info("Start Crawling $this->url");
-        $crawler = $client->request('GET', $this->url);
+        $this->logger->info("Start Crawling $url");
+        $crawler = $client->request('GET', $url);
 
-        //TODO: Pagination (This will need Selenium)
-        return $crawler->filter('.panel-body')->each(function (Crawler $post) {
+        $results = $crawler->filter('.panel-body')->each(function (Crawler $post) {
 
             $footer = $this->getFooter($post);
-            return array(
-                "content" => $this->getContent($post),
-                "author" => $footer[0],
-                "date" => $this->parseFrenchDate(trim($footer[1]))
-            );
+            $content = $this->getContent($post);
+            if ($footer != null && $content != null
+                && $this->isClassic($content)) {
+
+                return array(
+                    "content" => $content,
+                    "author" => $footer[0],
+                    "date" => $this->parseFrenchDate(trim($footer[1]))
+                );
+            }
+
+            return null;
         });
+
+        return array_values(array_filter($results));
+    }
+
+    /**
+     * Returns true if the content ends with "VDM"
+     * Do not even try to deal with VDMNews, VDMPhoto and People
+     *
+     * @param $c string content of the VDM Post
+     * @return bool
+     */
+    public function isClassic($c) {
+        $vdm = "VDM";
+        return strlen($vdm) === 0 || (substr($c, -strlen($vdm)) === $vdm);
     }
 
     protected function getContent(Crawler $post)
     {
-        //TODO: Gérer les VDM images et VDM news
         try {
             $content = $post
                 ->filter(self::CONTENT_SELECTOR)
@@ -51,7 +84,6 @@ class VdmScrapper
 
             return trim($content->text());
         } catch (\InvalidArgumentException $e) {
-            //TODO: Logs
             return null;
         }
     }
@@ -64,7 +96,7 @@ class VdmScrapper
 
             return self::extractAuthorAndDate($cleaned);
         } catch (\InvalidArgumentException $e) {
-            return array(null, null);
+            return null;
         }
     }
 
@@ -77,7 +109,7 @@ class VdmScrapper
             );
         }
 
-        return array(null, null);
+        return null;
     }
 
     public function parseFrenchDate($date)
@@ -94,7 +126,7 @@ class VdmScrapper
         if ($timestamp) {
             return DateTime::createFromFormat('U', $timestamp)->format(DateTime::ISO8601);
         } else {
-            return false;
+            return $timestamp;
         }
     }
 }
