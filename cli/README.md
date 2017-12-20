@@ -8,13 +8,15 @@ Command line tool for Scrappy Life.
 
 # Run
 
+      bin/scrappy posts --help
+
 ## Voir les posts
 
-      bin/scrappy posts | jq
+      bin/scrappy posts 200 | jq
 
 ## Charger les posts dans MongoDB
 
-      bin/scrappy load -vv
+      bin/scrappy load 200 -vv
 
 # On Docker
 

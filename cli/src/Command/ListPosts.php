@@ -3,13 +3,22 @@ namespace Scrappy\Command;
 
 use Scrappy\VdmScrapper;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 
-//TODO: PHPDocs
+/**
+ * "posts" command.
+ *
+ * Fetch and display VDM posts.
+ *
+ * @package Scrappy\Command
+ */
 class ListPosts extends Command
 {
+    const LIMIT_ARGUMENT = 'limit';
+
     private $url;
 
     public function __construct(string $url)
@@ -25,6 +34,7 @@ class ListPosts extends Command
           ->setName('posts')
           ->setDescription('Liste les postes sur vie de merde.')
           ->setHelp('Cette command affiche les 200 derniers postes depuis le site Vie de Merde...')
+          ->addArgument(self::LIMIT_ARGUMENT, InputArgument::REQUIRED, 'Number of VDM posts to fetch')
       ;
     }
 
@@ -32,7 +42,8 @@ class ListPosts extends Command
     {
         $logger = new ConsoleLogger($output);
         $scrapper = new VdmScrapper($this->url, $logger);
+        $limit = $input->getArgument(self::LIMIT_ARGUMENT);
 
-        $output->writeln(json_encode($scrapper->fetchPosts()));
+        $output->writeln(json_encode($scrapper->fetchPosts($limit)));
     }
 }

@@ -2,8 +2,8 @@
 
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use Scrappy\Command\ListPosts;
 use Scrappy\VdmScrapper;
+use Symfony\Component\DomCrawler\Crawler;
 
 class VdmScrapperTest extends TestCase
 {
@@ -16,6 +16,24 @@ class VdmScrapperTest extends TestCase
     {
         $this->scrapper = new VdmScrapper("vmd.fr", new NullLogger());
     }
+
+    public function testHandleInvalidContent() {
+        $invalidPost = new Crawler("<div class=\"panel-body\"></div>");
+
+        $this->assertEquals(
+            null,
+            $this->scrapper->getContent($invalidPost)
+        );
+    }
+    public function testHandleInvalidFooter() {
+        $invalidPost = new Crawler("");
+
+        $this->assertEquals(
+            null,
+            $this->scrapper->getFooter($invalidPost)
+        );
+    }
+
 
     public function testCanParseFrenchDates(): void
     {
@@ -71,5 +89,16 @@ class VdmScrapperTest extends TestCase
         $this->assertEquals(false, $this->scrapper->isClassic("Blabla"));
     }
 
+    public function testCanExtractPosts() {
+        $classicPage = new Crawler(file_get_contents(__DIR__ . '/resources/classic.html'));
 
+        $this->assertEquals(
+            array(array(
+                "content" => "Aujourd’hui, la maîtresse de ma fille me dit, désespérée : \"C’est fou, elle ne veut pas écrire de la main droite, il faudrait consulter.\" Tout ça parce qu'elle est gauchère. VDM",
+                "author" => "Anonyme",
+                "date" => "2017-12-19T22:30:00+0000"
+            )),
+            $this->scrapper->extractPosts($classicPage)
+        );
+    }
 }

@@ -7,42 +7,83 @@ use IntlDateFormatter;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
+/**
+ * VdmScrapper responsible of fetching VDM posts
+ *
+ * The scrapper will requests VDM pages and knows how to extract the data.
+ *
+ * VDMNews, VDMPictures, Videos and People are ignored at the moment.
+ *
+ * @package Scrappy
+ */
 class VdmScrapper
 {
     const CONTENT_SELECTOR = '.panel-content > p > a';
+
     const FOOTER_REGEXP = "/Par (.*) -  \/ ?([^\/]*)/u";
+
     const VDM_DATE_FORMAT = 'EEEE dd MMMM y hh:mm';
 
     private $url;
 
     private $logger;
 
+    private $client;
+
     public function __construct(string $url, LoggerInterface $logger)
     {
         $this->url = $url;
         $this->logger = $logger;
+        $this->client = new Client();
     }
 
-    public function fetchPosts() {
+    /**
+     * Main entry point to the scrapper.
+     *
+     * Loop through enough pages to fetch the required number of items.
+     * Stops after 20 pages to avoid infinite loops
+     *
+     * @param $limit number of elements to fetch
+     * @return array#
+     */
+    public function fetchPosts($limit) {
         $allPosts = array();
         $page = 0;
 
-        while (count($allPosts) < 200 && $page < 20) {
+        while (count($allPosts) < $limit && $page < 20) {
             $page++;
-            $posts = $this->fetchPostsOn($this->url."?page=".$page);
+            $url = $this->url . "?page=" . $page;
+
+            $posts = $this->fetchPostsOn($url);
             $allPosts = array_merge($allPosts, $posts);
+
             $this->logger->info("Posts scrapped so far: ".count($allPosts));
         }
 
         return $allPosts;
     }
 
-    private function fetchPostsOn($url) {
-        $client = new Client();
-
+    /**
+     * Fetch and extract posts from the given Url
+     *
+     * @param $url string the page to crawl
+     * @return array
+     */
+    public function fetchPostsOn($url)
+    {
         $this->logger->info("Start Crawling $url");
-        $crawler = $client->request('GET', $url);
+        $crawler = $this->client->request('GET', $url);
 
+        return $this->extractPosts($crawler);
+    }
+
+    /**
+     * Extract the data of the page.
+     *
+     * @param $crawler Crawler of the page to scrap
+     * @return array
+     */
+    public function extractPosts($crawler) {
         $results = $crawler->filter('.panel-body')->each(function (Crawler $post) {
 
             $footer = $this->getFooter($post);
@@ -75,7 +116,7 @@ class VdmScrapper
         return strlen($vdm) === 0 || (substr($c, -strlen($vdm)) === $vdm);
     }
 
-    protected function getContent(Crawler $post)
+    public function getContent(Crawler $post)
     {
         try {
             $content = $post
@@ -88,7 +129,7 @@ class VdmScrapper
         }
     }
 
-    protected function getFooter(Crawler $post)
+    public function getFooter(Crawler $post)
     {
         try {
             $footer = $post->filter('div')->last();

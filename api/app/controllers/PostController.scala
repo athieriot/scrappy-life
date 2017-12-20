@@ -12,10 +12,6 @@ import scala.concurrent.ExecutionContext
 // Api
 //TODO: Search
 
-// Cli
-//TODO: Test Crawlers functions
-//TODO: PHPDocs
-
 // UI
 //TODO: Frontend
 //TODO: Selenium Tests

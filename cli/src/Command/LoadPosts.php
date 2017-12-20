@@ -6,20 +6,35 @@ use PHPUnit\Runner\Exception;
 use Psr\Log\LogLevel;
 use Scrappy\VdmScrapper;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * "load" command
+ *
+ * Fetch and store VDM posts in MongoDB
+ *
+ * @package Scrappy\Command
+ */
 class LoadPosts extends Command
 {
+    const LIMIT_ARGUMENT = 'limit';
+
+    const MONGO_COLLECTION = "posts";
+
     private $url;
 
     private $mongoUri;
 
-    public function __construct(string $url, string $mongoUri)
+    private $mongoName;
+
+    public function __construct(string $url, string $mongoUri, string $mongoName)
     {
         $this->url = $url;
-        $this->mongoUri = $mongoUri;
+        $this->mongoUri = getenv('MONGO_URI') ? getenv('MONGO_URI') : $mongoUri;
+        $this->mongoName = $mongoName;
 
         parent::__construct();
     }
@@ -30,6 +45,7 @@ class LoadPosts extends Command
           ->setName('load')
           ->setDescription('Charge les postes VDM dans la base de donnée.')
           ->setHelp('Cette command récupere les postes sur VDM et les charges en base de donnée...')
+          ->addArgument(self::LIMIT_ARGUMENT, InputArgument::REQUIRED, 'Number of VDM posts to fetch')
       ;
     }
 
@@ -37,8 +53,9 @@ class LoadPosts extends Command
     {
         $logger = new ConsoleLogger($output);
         $scrapper = new VdmScrapper($this->url, $logger);
+        $limit = $input->getArgument(self::LIMIT_ARGUMENT);
 
-        $posts = $scrapper->fetchPosts();
+        $posts = $scrapper->fetchPosts($limit);
         $posts = array_map(function($p) { return $this->addId($p); }, $posts);
 
         try {
@@ -53,7 +70,7 @@ class LoadPosts extends Command
     }
 
     /**
-     * Produce an unique ID based on author and date
+     * Produce and set an unique ID based on author and date
      * This will protect existing IDs against reloading
      *
      * TODO: Should we include the content in it?
@@ -69,15 +86,16 @@ class LoadPosts extends Command
     }
 
     /**
+     * Persist the list of posts.
+     *
      * @param $posts
      * @return MongoDB\InsertManyResult
      */
     protected function persistPosts($posts): MongoDB\InsertManyResult
     {
-        $uri = getenv('MONGO_URI') ? getenv('MONGO_URI') : $this->mongoUri;
-        $mongo = new MongoDB\Client($uri);
+        $mongo = new MongoDB\Client($this->mongoUri);
 
-        $collection = $mongo->test->posts;
+        $collection = $mongo->selectCollection($this->mongoName, self::MONGO_COLLECTION);
         $collection->drop();
 
         return $collection->insertMany($posts);
