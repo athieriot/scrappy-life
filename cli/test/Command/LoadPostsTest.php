@@ -13,7 +13,7 @@ class LoadPostsTest extends TestCase
      */
     public function setup()
     {
-        $this->cmd = new LoadPosts("vmd.fr", "mongodb://localhost:27017");
+        $this->cmd = new LoadPosts("vmd.fr", "mongodb://localhost:27017", "test");
     }
 
     public function testCanAddId()

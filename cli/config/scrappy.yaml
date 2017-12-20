@@ -1,2 +1,3 @@
 vdm.url: 'http://viedemerde.fr'
 mongo.uri: 'mongodb://localhost:27017'
+mongo.name: 'test'
