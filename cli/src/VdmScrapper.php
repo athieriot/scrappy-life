@@ -167,7 +167,7 @@ class VdmScrapper
         if ($timestamp) {
             return DateTime::createFromFormat('U', $timestamp)->format(DateTime::ISO8601);
         } else {
-            return $timestamp;
+            return null;
         }
     }
 }

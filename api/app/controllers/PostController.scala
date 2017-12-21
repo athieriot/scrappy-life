@@ -1,5 +1,6 @@
 package controllers
 
+import java.time.Instant
 import javax.inject._
 
 import io.swagger.annotations._
@@ -9,9 +10,6 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-// Api
-//TODO: Search
-
 // UI
 //TODO: Frontend
 //TODO: Selenium Tests
@@ -20,9 +18,13 @@ import scala.concurrent.ExecutionContext
 class PostController @Inject()(cc: ControllerComponents, repository: PostRepository, implicit val ec: ExecutionContext)
   extends InjectedController {
 
+//  ,
+//  @ApiParam(value = "ISO Date from when to filter") from: Option[Instant],
+//  @ApiParam(value = "ISO Date until when to filter") to: Option[Instant]
+
   @ApiOperation(value = "Display all VDM posts", response = classOf[Post], responseContainer = "List")
-  def posts = Action.async {
-    repository.getAll.map(posts => {
+  def posts(@ApiParam(value = "Name of the author to filter by") author: Option[String], from: Option[Instant]) = Action.async {
+    repository.getAll(author, from).map(posts => {
       Ok(Json.toJson(PostsResponse(posts, posts.length)))
     })
   }
@@ -31,7 +33,7 @@ class PostController @Inject()(cc: ControllerComponents, repository: PostReposit
   @ApiResponses(Array(
     new ApiResponse(code = 404, message = "Post not found")
   ))
-  def post(@ApiParam(value = "The id of the post to display") id: String) = Action.async { request =>
+  def post(@ApiParam(value = "The id of the post to display", required = true) id: String) = Action.async { request =>
     repository.getOne(id).map {
       case Some(p) => Ok(Json.toJson(PostResponse(p)))
       case None => NotFound

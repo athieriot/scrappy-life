@@ -1,6 +1,8 @@
 <?php
 namespace Scrappy\Command;
 
+use DateTime;
+use MongoDate;
 use MongoDB;
 use PHPUnit\Runner\Exception;
 use Psr\Log\LogLevel;
@@ -81,6 +83,7 @@ class LoadPosts extends Command
     public function addId($post)
     {
         $post["_id"] = sha1($post["author"].$post["date"]);
+        $post["timestamp"] = new MongoDB\BSON\UTCDateTime(DateTime::createFromFormat(DATE_ISO8601, $post["date"])->getTimestamp() * 1000);
 
         return $post;
     }
@@ -97,6 +100,8 @@ class LoadPosts extends Command
 
         $collection = $mongo->selectCollection($this->mongoName, self::MONGO_COLLECTION);
         $collection->drop();
+
+        $index = $collection->createIndex([ "author" => "text" ]);
 
         return $collection->insertMany($posts);
     }
