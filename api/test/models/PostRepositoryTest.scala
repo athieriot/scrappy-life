@@ -20,10 +20,10 @@ class PostRepositoryTest extends PlaySpec
     "be able to retrieve a list of posts" in {
       withEmbedMongoFixture() { _ =>
         val repository = fakeApplication().injector.instanceOf[PostRepository]
-        val expected = Post(None, Some("Test"), Some("Me"), Some("2017"))
+        val expected = Post("UUID", Some("Test"), Some("Me"), Some("2017"))
 
         repository.add(expected)
-        repository.getAll map { p =>
+        repository.find(None, None, None) map { p =>
           assert(p.length == 1)
           assert(p == expected)
         }
@@ -34,7 +34,7 @@ class PostRepositoryTest extends PlaySpec
       withEmbedMongoFixture() { _ =>
         val repository = fakeApplication().injector.instanceOf[PostRepository]
         val id = "sjhdfsd54f5s4df"
-        val expected = Post(Some(id), Some("Test"), Some("Me"), Some("2017"))
+        val expected = Post(id, Some("Test"), Some("Me"), Some("2017"))
 
         repository.add(expected)
         repository.getOne(id) map { p =>

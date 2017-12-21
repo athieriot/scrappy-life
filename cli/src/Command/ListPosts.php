@@ -1,6 +1,8 @@
 <?php
 namespace Scrappy\Command;
 
+use function foo\func;
+use Scrappy\Model\VDMPost;
 use Scrappy\VdmScrapper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -44,6 +46,7 @@ class ListPosts extends Command
         $scrapper = new VdmScrapper($this->url, $logger);
         $limit = $input->getArgument(self::LIMIT_ARGUMENT);
 
-        $output->writeln(json_encode($scrapper->fetchPosts($limit)));
+        $posts = array_map(function (VDMPost $post) { return $post->bsonSerialize(); }, $scrapper->fetchPosts($limit));
+        $output->writeln(json_encode($posts));
     }
 }

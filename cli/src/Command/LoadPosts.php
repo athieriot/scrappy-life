@@ -1,8 +1,6 @@
 <?php
 namespace Scrappy\Command;
 
-use DateTime;
-use MongoDate;
 use MongoDB;
 use PHPUnit\Runner\Exception;
 use Psr\Log\LogLevel;
@@ -57,10 +55,8 @@ class LoadPosts extends Command
         $scrapper = new VdmScrapper($this->url, $logger);
         $limit = $input->getArgument(self::LIMIT_ARGUMENT);
 
-        $posts = $scrapper->fetchPosts($limit);
-        $posts = array_map(function($p) { return $this->addId($p); }, $posts);
-
         try {
+            $posts = $scrapper->fetchPosts($limit);
             $results = $this->persistPosts($posts);
 
         } catch (Exception $e) {
@@ -69,23 +65,6 @@ class LoadPosts extends Command
         }
 
         $logger->log(LogLevel::INFO, $results->getInsertedCount()." Inserted in the Posts collection");
-    }
-
-    /**
-     * Produce and set an unique ID based on author and date
-     * This will protect existing IDs against reloading
-     *
-     * TODO: Should we include the content in it?
-     *
-     * @param $post
-     * @return mixed
-     */
-    public function addId($post)
-    {
-        $post["_id"] = sha1($post["author"].$post["date"]);
-        $post["timestamp"] = new MongoDB\BSON\UTCDateTime(DateTime::createFromFormat(DATE_ISO8601, $post["date"])->getTimestamp() * 1000);
-
-        return $post;
     }
 
     /**
@@ -101,8 +80,19 @@ class LoadPosts extends Command
         $collection = $mongo->selectCollection($this->mongoName, self::MONGO_COLLECTION);
         $collection->drop();
 
-        $index = $collection->createIndex([ "author" => "text" ]);
+        $this->createIndex($collection);
 
         return $collection->insertMany($posts);
+    }
+
+    /**
+     * Create necessary indexes
+     *
+     * @param $collection
+     * @return string
+     */
+    protected function createIndex($collection)
+    {
+        return $collection->createIndex(["author" => "text"]);
     }
 }

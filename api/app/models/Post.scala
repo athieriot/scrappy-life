@@ -7,13 +7,14 @@ import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference.primary
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONElementSet, BSONString, BSONValue}
+import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString}
 import reactivemongo.play.json._
 import reactivemongo.play.json.collection.JSONCollection
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class Post(_id: Option[String], content: Option[String], author: Option[String], date: Option[String])
+//TODO: Has to display the Mongo ISODate as String
+case class Post(_id: String, content: Option[String], author: Option[String], date: Option[String])
 
 case class PostResponse(post: Post)
 case class PostsResponse(posts: Seq[Post], count: Int)
@@ -39,32 +40,20 @@ class PostRepository @Inject()(implicit ec: ExecutionContext, reactiveMongoApi: 
 
   def postsCollection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection(POST_COLLECTION))
 
-  case class Criteria(field: String, matcher: String, value: Option[BSONValue])
+  //TODO: Not particularly fond of that signature
+  def find(author: Option[String], from: Option[Instant], to: Option[Instant]): Future[Seq[Post]] = {
+    import Criteria._
 
-  def getAll(author: Option[String], from: Option[Instant]): Future[Seq[Post]] = {
     val criterion = List(
       Criteria("author", "$text", author.map(BSONString)),
-      Criteria("from", "$text", from.map(i => BSONDateTime(i.toEpochMilli)))
+      Criteria("timestamp", "$gte", from.map(_.toEpochMilli).map(BSONDateTime)),
+      Criteria("timestamp", "$lte", to.map(_.toEpochMilli).map(BSONDateTime))
     )
 
     postsCollection.flatMap(_.find(toQuery(criterion))
       .cursor[Post](primary)
       .collect[Seq](-1, FailOnError[Seq[Post]]())
     )
-  }
-
-  private def toQuery(criterion: List[Criteria]): BSONDocument = {
-    val stuff = criterion.flatMap { c =>
-      c.value match {
-        case None => None
-        case Some(_) => c.matcher match {
-          case "$text" => Some(BSONDocument("$text" -> BSONDocument("$search" -> c.value)))
-          case _ => Some(BSONDocument(c.field -> BSONDocument(c.matcher -> c.value)))
-        }
-      }
-    }
-
-    if (stuff.isEmpty) BSONDocument() else BSONDocument("$and" -> stuff)
   }
 
   def getOne(id: String): Future[Option[Post]] = {

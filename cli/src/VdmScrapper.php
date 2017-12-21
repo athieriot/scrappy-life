@@ -4,7 +4,9 @@ namespace Scrappy;
 use DateTime;
 use Goutte\Client;
 use IntlDateFormatter;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Scrappy\Model\VDMPost;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -41,7 +43,7 @@ class VdmScrapper
      * Main entry point to the scrapper.
      *
      * Loop through enough pages to fetch the required number of items.
-     * Stops after 20 pages to avoid infinite loops
+     * Stops after 25 pages to avoid infinite loops
      *
      * @param $limit number of elements to fetch
      * @return array#
@@ -50,7 +52,7 @@ class VdmScrapper
         $allPosts = array();
         $page = 0;
 
-        while (count($allPosts) < $limit && $page < 20) {
+        while (count($allPosts) < $limit && $page < 25) {
             $page++;
             $url = $this->url . "?page=" . $page;
 
@@ -91,10 +93,10 @@ class VdmScrapper
             if ($footer != null && $content != null
                 && $this->isClassic($content)) {
 
-                return array(
-                    "content" => $content,
-                    "author" => $footer[0],
-                    "date" => $this->parseFrenchDate(trim($footer[1]))
+                return new VDMPost(
+                    $content,
+                    $footer[0],
+                    $this->parseFrenchDate(trim($footer[1]))
                 );
             }
 
@@ -124,7 +126,7 @@ class VdmScrapper
                 ->first();
 
             return trim($content->text());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return null;
         }
     }
@@ -136,7 +138,7 @@ class VdmScrapper
             $cleaned = str_replace("\n", "", $footer->text());
 
             return self::extractAuthorAndDate($cleaned);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return null;
         }
     }
@@ -165,7 +167,7 @@ class VdmScrapper
 
         $timestamp = $format->parse($date);
         if ($timestamp) {
-            return DateTime::createFromFormat('U', $timestamp)->format(DateTime::ISO8601);
+            return DateTime::createFromFormat('U', $timestamp);
         } else {
             return null;
         }

@@ -1,5 +1,7 @@
 package controllers
 
+import java.time.Instant
+
 import models.{Post, PostRepository}
 import org.scalamock.scalatest.MockFactory
 import org.scalatestplus.play._
@@ -26,7 +28,7 @@ class PostControllerSpec extends PlaySpec
   "/posts" should {
 
     "return an empty list of posts" in {
-      mockRepository.getAll _ expects() returning Future(Seq())
+      mockRepository.find _ expects(None, None, None) returning Future(Seq())
 
       val request = FakeRequest(GET, "/posts")
       val posts = route(app, request).get
@@ -38,8 +40,8 @@ class PostControllerSpec extends PlaySpec
     }
 
     "return a list of posts" in {
-      mockRepository.getAll _ expects() returning Future(Seq(
-        Post(None, Some("VMD"), Some("Someone"), Some("2017")))
+      mockRepository.find _ expects(None, None, None) returning Future(Seq(
+        Post("UUID", Some("VMD"), Some("Someone"), Some("2017")))
       )
 
       val request = FakeRequest(GET, "/posts")
@@ -47,7 +49,21 @@ class PostControllerSpec extends PlaySpec
 
       status(posts) mustBe OK
       contentType(posts) mustBe Some(JSON)
-      contentAsString(posts) mustBe "{\"posts\":[{\"content\":\"VMD\",\"author\":\"Someone\",\"date\":\"2017\"}],\"count\":1}"
+      contentAsString(posts) mustBe "{\"posts\":[{\"_id\":\"UUID\",\"content\":\"VMD\",\"author\":\"Someone\",\"date\":\"2017\"}],\"count\":1}"
+    }
+
+    "Accept filter parameters" in {
+      val date = Instant.parse("2017-12-21T22:30:00Z")
+      mockRepository.find _ expects(Some("me"), Some(date), Some(date)) returning Future(Seq(
+        Post("UUID", Some("VMD"), Some("Someone"), Some("2017")))
+      )
+
+      val request = FakeRequest(GET, "/posts?author=me&from=2017-12-21T22:30:00Z&to=2017-12-21T22:30:00Z")
+      val posts = route(app, request).get
+
+      status(posts) mustBe OK
+      contentType(posts) mustBe Some(JSON)
+      contentAsString(posts) mustBe "{\"posts\":[{\"_id\":\"UUID\",\"content\":\"VMD\",\"author\":\"Someone\",\"date\":\"2017\"}],\"count\":1}"
     }
   }
 
@@ -62,14 +78,14 @@ class PostControllerSpec extends PlaySpec
     }
 
     "return a single post" in {
-      mockRepository.getOne _ expects * returning Future(Some(Post(None, Some("Test"), None, None)))
+      mockRepository.getOne _ expects * returning Future(Some(Post("UUID", Some("Test"), None, None)))
 
       val request = FakeRequest(GET, "/posts/5a3841ab1500001500457e55")
       val posts = route(app, request).get
 
       status(posts) mustBe OK
       contentType(posts) mustBe Some(JSON)
-      contentAsString(posts) mustBe "{\"post\":{\"content\":\"Test\"}}"
+      contentAsString(posts) mustBe "{\"post\":{\"_id\":\"UUID\",\"content\":\"Test\"}}"
     }
   }
 }

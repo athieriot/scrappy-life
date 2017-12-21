@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Scrappy\Model\VDMPost;
 use Scrappy\VdmScrapper;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -25,6 +26,7 @@ class VdmScrapperTest extends TestCase
             $this->scrapper->getContent($invalidPost)
         );
     }
+
     public function testHandleInvalidFooter() {
         $invalidPost = new Crawler("");
 
@@ -34,12 +36,11 @@ class VdmScrapperTest extends TestCase
         );
     }
 
-
     public function testCanParseFrenchDates(): void
     {
         $this->assertEquals(
             "2017-12-15T11:30:00+0000",
-            $this->scrapper->parseFrenchDate("vendredi 15 décembre 2017 11:30")
+            $this->scrapper->parseFrenchDate("vendredi 15 décembre 2017 11:30")->format(DateTime::ISO8601)
         );
     }
 
@@ -93,10 +94,10 @@ class VdmScrapperTest extends TestCase
         $classicPage = new Crawler(file_get_contents(__DIR__ . '/resources/classic.html'));
 
         $this->assertEquals(
-            array(array(
-                "content" => "Aujourd’hui, la maîtresse de ma fille me dit, désespérée : \"C’est fou, elle ne veut pas écrire de la main droite, il faudrait consulter.\" Tout ça parce qu'elle est gauchère. VDM",
-                "author" => "Anonyme",
-                "date" => "2017-12-19T22:30:00+0000"
+            array(new VDMPost(
+                "Aujourd’hui, la maîtresse de ma fille me dit, désespérée : \"C’est fou, elle ne veut pas écrire de la main droite, il faudrait consulter.\" Tout ça parce qu'elle est gauchère. VDM",
+               "Anonyme",
+                DateTime::createFromFormat(DATE_ISO8601, "2017-12-19T22:30:00+0000")
             )),
             $this->scrapper->extractPosts($classicPage)
         );
