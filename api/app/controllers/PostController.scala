@@ -10,7 +10,6 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-//TODO: Production ready DockerCompose file
 @Api(value = "/posts")
 class PostController @Inject()(cc: ControllerComponents, repository: PostRepository, implicit val ec: ExecutionContext)
   extends InjectedController {

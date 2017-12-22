@@ -10,12 +10,20 @@ N'hésitez pas a aller prendre un café !
 
       docker-compose up -d
 
+Mais si vous etes pressés:
+
+      docker-compose -f docker-compose-production.yml up -d
+
+Il faudra quelques secondes pour que les posts VDM se chargent la premiere fois.
+Rechargez la page au besoin !
+
 # Application
+
+Si vous souhaitez lancer l'application localement, chaque partie contient un README détaillé sur la marche a suivre.
 
 ## Afficher la spec Swagger
 
   [http://localhost:9000](http://localhost:9000)
-
 
 ## Voir les posts
 

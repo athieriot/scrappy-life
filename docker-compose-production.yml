@@ -5,7 +5,7 @@ services:
     image: mongo:3.6
 
   cli:
-    build: ./cli
+    image: athieriot/scrappylife_cli:latest
     command: "load 200"
     environment:
       - 'MONGO_URI=mongodb://db:27017'
@@ -13,7 +13,7 @@ services:
       - db
 
   api:
-    build: ./api
+    image: athieriot/scrappylife_api:latest
     environment:
       - 'MONGO_URI=mongodb://db:27017/test'
       - 'APPLICATION_SECRET=ecabbd83-beaa-4a30-9c36-a7a79bdf0afd'
@@ -21,10 +21,3 @@ services:
       - db
     ports:
       - 9000:9000
-
-  mongo_express:
-    image: mongo-express
-    links:
-      - db:mongo
-    ports:
-      - 8081:8081
